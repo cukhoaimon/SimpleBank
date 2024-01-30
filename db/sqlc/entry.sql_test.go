@@ -45,7 +45,8 @@ func TestQueries_GetEntry(t *testing.T) {
 
 func TestQueries_ListEntries(t *testing.T) {
 	account := createRandomAccount(t)
-	var entries []Entry
+	entries := []Entry{}
+
 	for i := 0; i < 10; i++ {
 		entries = append(entries, createRandomEntry(t, account))
 	}
