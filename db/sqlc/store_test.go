@@ -32,6 +32,8 @@ func TestStore_TransferTxAccount(t *testing.T) {
 		}()
 	}
 
+	existed := make(map[int]bool)
+
 	// validate
 	for i := 0; i < n; i++ {
 		err := <-errs
@@ -78,5 +80,38 @@ func TestStore_TransferTxAccount(t *testing.T) {
 		require.Equal(t, amount, toEntry.Amount)
 		_, err = store.GetEntry(context.Background(), toEntry.ID)
 		require.Nil(t, err)
+
+		// Check account
+
+		fromAccount := result.FromAccount
+		require.NotEmpty(t, fromAccount)
+		require.Equal(t, wantFromAccount.ID, fromAccount.ID)
+
+		toAccount := result.ToAccount
+		require.NotEmpty(t, toAccount)
+		require.Equal(t, wantToAccount.ID, toAccount.ID)
+
+		diff1 := wantFromAccount.Balance - fromAccount.Balance
+		diff2 := toAccount.Balance - wantToAccount.Balance
+
+		require.Equal(t, diff1, diff2)
+		require.True(t, diff1 > 0)
+		require.True(t, diff1%amount == 0)
+
+		k := int(diff1 / amount)
+		require.True(t, k >= 1 && k <= n)
+
+		require.NotContains(t, existed, k)
+		existed[k] = true
 	}
+
+	// check final update
+	updatedAccount1, err := testQuery.GetAccount(context.Background(), wantFromAccount.ID)
+	require.Nil(t, err)
+	require.Equal(t, wantFromAccount.Balance-int64(n)*amount, updatedAccount1.Balance)
+
+	updatedAccount2, err := testQuery.GetAccount(context.Background(), wantToAccount.ID)
+	require.Nil(t, err)
+	require.Equal(t, wantToAccount.Balance+int64(n)*amount, updatedAccount2.Balance)
+
 }
