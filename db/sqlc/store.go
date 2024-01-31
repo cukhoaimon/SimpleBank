@@ -6,18 +6,23 @@ import (
 	"fmt"
 )
 
-type Store struct {
+type Store interface {
+	Querier
+	TransferTxAccount(ctx context.Context, arg TransferTxParams) (TransferTxResult, error)
+}
+
+type SQLStore struct {
 	*Queries
 	db *sql.DB
 }
 
-func NewStore(db *sql.DB) *Store {
-	return &Store{
+func NewStore(db *sql.DB) *SQLStore {
+	return &SQLStore{
 		db:      db,
 		Queries: New(db),
 	}
 }
-func (store *Store) execTx(ctx context.Context, fn func(*Queries) error) error {
+func (store *SQLStore) execTx(ctx context.Context, fn func(*Queries) error) error {
 	tx, err := store.db.BeginTx(ctx, &sql.TxOptions{
 		Isolation: sql.LevelReadCommitted, // defaul
 	})
@@ -56,7 +61,7 @@ type TransferTxResult struct {
 
 // Transaction perform an transfer between two account
 // It create transfer record, add account entries, update account balance
-func (store *Store) TransferTxAccount(ctx context.Context, arg TransferTxParams) (TransferTxResult, error) {
+func (store *SQLStore) TransferTxAccount(ctx context.Context, arg TransferTxParams) (TransferTxResult, error) {
 	result := TransferTxResult{}
 
 	err := store.execTx(ctx, func(q *Queries) error {
