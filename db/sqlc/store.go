@@ -24,7 +24,7 @@ func NewStore(db *sql.DB) *SQLStore {
 }
 func (store *SQLStore) execTx(ctx context.Context, fn func(*Queries) error) error {
 	tx, err := store.db.BeginTx(ctx, &sql.TxOptions{
-		Isolation: sql.LevelReadCommitted, // defaul
+		Isolation: sql.LevelReadCommitted, // default
 	})
 
 	if err != nil {
@@ -47,7 +47,7 @@ func (store *SQLStore) execTx(ctx context.Context, fn func(*Queries) error) erro
 
 type TransferTxParams struct {
 	FromAccountID int64 `json:"from_account_id"`
-	ToAccountId   int64 `json:"to_account_id"`
+	ToAccountID   int64 `json:"to_account_id"`
 	Amount        int64 `json:"amount"`
 }
 
@@ -59,7 +59,7 @@ type TransferTxResult struct {
 	ToEntry     Entry    `json:"to_entry"`
 }
 
-// Transaction perform an transfer between two account
+// TransferTxAccount perform a transfer between two account
 // It create transfer record, add account entries, update account balance
 func (store *SQLStore) TransferTxAccount(ctx context.Context, arg TransferTxParams) (TransferTxResult, error) {
 	result := TransferTxResult{}
@@ -69,7 +69,7 @@ func (store *SQLStore) TransferTxAccount(ctx context.Context, arg TransferTxPara
 
 		result.Transfer, err = q.CreateTransfer(ctx, CreateTransferParams{
 			FromAccountID: arg.FromAccountID,
-			ToAccountID:   arg.ToAccountId,
+			ToAccountID:   arg.ToAccountID,
 			Amount:        arg.Amount,
 		})
 		if err != nil {
@@ -85,18 +85,18 @@ func (store *SQLStore) TransferTxAccount(ctx context.Context, arg TransferTxPara
 		}
 
 		result.ToEntry, err = q.CreateEntry(ctx, CreateEntryParams{
-			AccountID: arg.ToAccountId,
+			AccountID: arg.ToAccountID,
 			Amount:    arg.Amount,
 		})
 		if err != nil {
 			return err
 		}
 
-		if arg.FromAccountID < arg.ToAccountId {
-			result.FromAccount, result.ToAccount, err = transferMoney(ctx, q, arg.FromAccountID, -arg.Amount, arg.ToAccountId, arg.Amount)
+		if arg.FromAccountID < arg.ToAccountID {
+			result.FromAccount, result.ToAccount, err = transferMoney(ctx, q, arg.FromAccountID, -arg.Amount, arg.ToAccountID, arg.Amount)
 
 		} else {
-			result.ToAccount, result.FromAccount, err = transferMoney(ctx, q, arg.ToAccountId, arg.Amount, arg.FromAccountID, -arg.Amount)
+			result.ToAccount, result.FromAccount, err = transferMoney(ctx, q, arg.ToAccountID, arg.Amount, arg.FromAccountID, -arg.Amount)
 		}
 
 		if err != nil {
