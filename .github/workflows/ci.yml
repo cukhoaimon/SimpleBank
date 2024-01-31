@@ -38,7 +38,7 @@ jobs:
       - name: Install migrate CLI
         run: |
           curl -L https://github.com/golang-migrate/migrate/releases/download/v4.17.0/migrate.darwin-amd64.tar.gz | tar xvz
-          mv migrate.darwin-amd64 /usr/bin/migrate
+          mv migrate /usr/bin/
 
       - name: Run migration database
         run: make migrate-up
