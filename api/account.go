@@ -3,6 +3,8 @@ package api
 import (
 	"database/sql"
 	"errors"
+	"github.com/lib/pq"
+	"log"
 	"net/http"
 
 	db "github.com/cukhoaimon/SimpleBank/db/sqlc"
@@ -30,6 +32,11 @@ func (server *Server) createAccount(ctx *gin.Context) {
 
 	account, err := server.store.CreateAccount(ctx, arg)
 	if err != nil {
+		var pqErr *pq.Error
+		if errors.As(err, &pqErr) {
+			log.Println(pqErr.Code.Name())
+		}
+
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}
