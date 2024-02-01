@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"errors"
 	"github.com/lib/pq"
-	"log"
 	"net/http"
 
 	db "github.com/cukhoaimon/SimpleBank/db/sqlc"
@@ -34,7 +33,11 @@ func (server *Server) createAccount(ctx *gin.Context) {
 	if err != nil {
 		var pqErr *pq.Error
 		if errors.As(err, &pqErr) {
-			log.Println(pqErr.Code.Name())
+			switch pqErr.Code.Name() {
+			case "foreign_key_violation", "unique_violation":
+				ctx.JSON(http.StatusForbidden, errorResponse(err))
+				return
+			}
 		}
 
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
