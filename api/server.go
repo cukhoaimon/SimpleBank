@@ -28,8 +28,8 @@ func NewServer(store db.Store) *Server {
 
 	// routing here
 	router.GET("/api/v1/account", server.listAccount)
-	router.POST("/api/v1/account", server.createAccount)
 	router.GET("/api/v1/account/:id", server.getAccount)
+	router.POST("/api/v1/account", server.createAccount)
 
 	router.POST("/api/v1/transfer", server.createTransfer)
 
