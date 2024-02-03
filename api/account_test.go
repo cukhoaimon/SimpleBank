@@ -33,7 +33,7 @@ func TestServer_getAccount(t *testing.T) {
 			buildStubs: func(store *mockdb.MockStore) {
 				store.EXPECT().
 					GetAccount(gomock.Any(), gomock.Eq(account.ID)). /* call getAccount in any context */
-					Times(1).                                        /* how many time call function */
+					Times(1).                                        /* how many times call function */
 					Return(account, nil)                             /* must fit with function */
 			},
 			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
@@ -93,7 +93,7 @@ func TestServer_getAccount(t *testing.T) {
 			tc.buildStubs(store)
 
 			// start test server and send request
-			server := NewServer(store)
+			server := newTestServer(t, store)
 			recorder := httptest.NewRecorder()
 
 			url := fmt.Sprintf("/api/v1/account/%d", tc.accountID)
@@ -193,7 +193,7 @@ func TestServer_createAccount(t *testing.T) {
 			tc.buildStubs(store)
 
 			// start test server and send request
-			server := NewServer(store)
+			server := newTestServer(t, store)
 			recorder := httptest.NewRecorder()
 
 			url := "/api/v1/account"
@@ -309,7 +309,7 @@ func TestServer_listAccount(t *testing.T) {
 			tc.buildStubs(store)
 
 			// start test server and send request
-			server := NewServer(store)
+			server := newTestServer(t, store)
 			recorder := httptest.NewRecorder()
 
 			url := fmt.Sprintf("/api/v1/account?page_id=%d&page_size=%d", tc.query.PageID, tc.query.PageSize)
