@@ -13,9 +13,9 @@ const (
 )
 
 var (
-	InvalidKeySize  = fmt.Errorf("ERROR: secret key size must greater than %d", minSecretKeySize)
-	InvalidTokenAlg = fmt.Errorf("unexpected signing method, expected SigningMethodHS256")
-	InvalidToken    = fmt.Errorf("invalid token")
+	JWTInvalidKeySize = fmt.Errorf("ERROR: secret key size must greater than %d", minSecretKeySize)
+	InvalidTokenAlg   = fmt.Errorf("unexpected signing method, expected SigningMethodHS256")
+	InvalidToken      = fmt.Errorf("invalid token")
 )
 
 // JWTMaker is a Json web token maker
@@ -26,7 +26,7 @@ type JWTMaker struct {
 // NewJWTMaker create new jwt maker
 func NewJWTMaker(secretKey string) (Maker, error) {
 	if len(secretKey) < minSecretKeySize {
-		return nil, InvalidKeySize
+		return nil, JWTInvalidKeySize
 	}
 	return &JWTMaker{secretKey: secretKey}, nil
 }

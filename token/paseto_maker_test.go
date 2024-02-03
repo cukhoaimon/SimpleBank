@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-func TestJWTMaker_Token(t *testing.T) {
+func TestPasetoMaker_Token(t *testing.T) {
 	duration := time.Hour
 	payloadId, err := uuid.NewUUID()
 	require.Nil(t, err)
@@ -29,7 +29,7 @@ func TestJWTMaker_Token(t *testing.T) {
 				ExpiredAt: time.Now().Add(duration),
 			},
 			testFunc: func(t *testing.T, secretKey string, args *Payload) {
-				maker, err := NewJWTMaker(secretKey)
+				maker, err := NewPasetoMaker(secretKey)
 				require.Nil(t, err)
 
 				token, err := maker.CreateToken(args.Username, duration)
@@ -50,9 +50,9 @@ func TestJWTMaker_Token(t *testing.T) {
 			secretKey: utils.RandomString(10),
 			args:      &Payload{},
 			testFunc: func(t *testing.T, secretKey string, args *Payload) {
-				_, err := NewJWTMaker(secretKey)
+				_, err := NewPasetoMaker(secretKey)
 				require.Error(t, err)
-				require.Equal(t, JWTInvalidKeySize, err)
+				require.Equal(t, PasetoInvalidKeySize, err)
 			},
 		},
 	}
