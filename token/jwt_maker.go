@@ -32,20 +32,21 @@ func NewJWTMaker(secretKey string) (Maker, error) {
 }
 
 // CreateToken create a new jwt token
-func (J JWTMaker) CreateToken(username string, duration time.Duration) (string, error) {
+func (J JWTMaker) CreateToken(username string, duration time.Duration) (string, *Payload, error) {
 	payload, err := NewPayload(username, duration)
 	if err != nil {
-		return "", err
+		return "", nil, err
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, payload)
 
 	key, err := base64.StdEncoding.DecodeString(J.secretKey)
 	if err != nil {
-		return "", err
+		return "", nil, err
 	}
 
-	return token.SignedString(key)
+	accessToken, err := token.SignedString(key)
+	return accessToken, payload, err
 }
 
 // VerifyToken verify if the jwt token is valid or not

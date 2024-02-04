@@ -28,7 +28,11 @@ test:
 server:
 	go run main.go
 
+dbdocs:
+	dbdocs build doc/database.dbml
+
+
 mock:
 	mockgen -package mockdb -destination db/mock/store.go github.com/cukhoaimon/SimpleBank/db/sqlc Store
 
-.PHONY: postgres createdb dropdb migrate-up migrate-down sqlc test server mock
+.PHONY: postgres createdb dropdb migrate-up migrate-down sqlc test server mock dbdocs
