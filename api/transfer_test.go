@@ -14,6 +14,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 )
 
 func TestServer_createTransfer(t *testing.T) {
@@ -80,7 +81,7 @@ func TestServer_createTransfer(t *testing.T) {
 			buildStubs: func(store *mockdb.MockStore) {
 				store.EXPECT().
 					GetAccount(gomock.Any(), gomock.Eq(fromAccount.ID)).
-					Times(1).
+					Times(2).
 					Return(fromAccount, nil)
 
 				store.EXPECT().
@@ -158,7 +159,7 @@ func TestServer_createTransfer(t *testing.T) {
 			buildStubs: func(store *mockdb.MockStore) {
 				store.EXPECT().
 					GetAccount(gomock.Any(), gomock.Eq(fromAccount.ID)).
-					Times(1).
+					Times(2).
 					Return(fromAccount, nil)
 
 				store.EXPECT().
@@ -180,7 +181,7 @@ func TestServer_createTransfer(t *testing.T) {
 			buildStubs: func(store *mockdb.MockStore) {
 				store.EXPECT().
 					GetAccount(gomock.Any(), gomock.Eq(fromAccount.ID)).
-					Times(1).
+					Times(2).
 					Return(fromAccount, nil)
 
 				store.EXPECT().
@@ -236,7 +237,7 @@ func TestServer_createTransfer(t *testing.T) {
 			buildStubs: func(store *mockdb.MockStore) {
 				store.EXPECT().
 					GetAccount(gomock.Any(), gomock.Eq(fromAccount.ID)).
-					Times(1).
+					Times(2).
 					Return(fromAccount, nil)
 
 				store.EXPECT().
@@ -280,6 +281,7 @@ func TestServer_createTransfer(t *testing.T) {
 			request, err := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(data))
 			require.Nil(t, err)
 
+			addAuthorization(t, request, server.tokenMaker, authorizationTypeBearer, fromAccount.Owner, time.Minute)
 			server.router.ServeHTTP(recorder, request)
 
 			// check response

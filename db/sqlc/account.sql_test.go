@@ -86,20 +86,23 @@ func TestQueries_DeleteAccount(t *testing.T) {
 	require.Empty(t, have)
 }
 
+// TODO: Fix List Account in the ListAccountsParams
 func TestQueries_ListAccount(t *testing.T) {
+	var lastAccount Account
 	for i := 0; i < 10; i++ {
-		createRandomAccount(t)
+		lastAccount = createRandomAccount(t)
 	}
 
 	arg := ListAccountsParams{
+		Owner:  lastAccount.Owner,
 		Limit:  5,
-		Offset: 5,
+		Offset: 0,
 	}
 
 	have, err := testQuery.ListAccounts(context.Background(), arg)
 
 	require.Nil(t, err)
-	require.Len(t, have, int(arg.Limit))
+	require.Len(t, have, 1)
 
 	for _, account := range have {
 		require.NotEmpty(t, account)

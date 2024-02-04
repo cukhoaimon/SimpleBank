@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	mockdb "github.com/cukhoaimon/SimpleBank/db/mock"
 	db "github.com/cukhoaimon/SimpleBank/db/sqlc"
@@ -19,7 +20,8 @@ import (
 )
 
 func TestServer_getAccount(t *testing.T) {
-	account := randomAccount()
+	user, _ := randomUser(t)
+	account := randomAccountWithUser(user)
 
 	testCases := []struct {
 		name          string
@@ -102,6 +104,7 @@ func TestServer_getAccount(t *testing.T) {
 			request, err := http.NewRequest(http.MethodGet, url, nil)
 			require.Nil(t, err)
 
+			addAuthorization(t, request, server.tokenMaker, authorizationTypeBearer, user.Username, time.Minute)
 			server.router.ServeHTTP(recorder, request)
 			// check response
 			tc.checkResponse(t, recorder)
@@ -205,6 +208,8 @@ func TestServer_createAccount(t *testing.T) {
 			request, err := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(data))
 			require.Nil(t, err)
 
+			addAuthorization(t, request, server.tokenMaker, authorizationTypeBearer, arg.Owner, time.Minute)
+
 			server.router.ServeHTTP(recorder, request)
 			// check response
 			tc.checkResponse(t, recorder)
@@ -212,15 +217,19 @@ func TestServer_createAccount(t *testing.T) {
 	}
 }
 
+// TODO: add authorization to listAccount
+// TODO: rewrite listAccount for more robust
 func TestServer_listAccount(t *testing.T) {
+	user, _ := randomUser(t)
 	n := 10
 	accounts := make([]db.Account, n)
 
 	for i := 0; i < n; i++ {
-		accounts = append(accounts, randomAccount())
+		accounts = append(accounts, randomAccountWithUser(user))
 	}
 
 	arg := listAccountRequest{
+		Owner:    user.Username,
 		PageID:   1,
 		PageSize: 5,
 	}
@@ -239,8 +248,9 @@ func TestServer_listAccount(t *testing.T) {
 
 				store.EXPECT().
 					ListAccounts(gomock.Any(), gomock.Eq(db.ListAccountsParams{
-						Offset: offset,
+						Owner:  user.Username,
 						Limit:  arg.PageSize,
+						Offset: offset,
 					})).
 					Times(1).
 					Return(accounts[offset:offset+arg.PageSize], nil)
@@ -286,6 +296,7 @@ func TestServer_listAccount(t *testing.T) {
 
 				store.EXPECT().
 					ListAccounts(gomock.Any(), gomock.Eq(db.ListAccountsParams{
+						Owner:  user.Username,
 						Offset: offset,
 						Limit:  arg.PageSize,
 					})).
@@ -317,6 +328,7 @@ func TestServer_listAccount(t *testing.T) {
 			// send request
 			request, err := http.NewRequest(http.MethodGet, url, nil)
 			require.Nil(t, err)
+			addAuthorization(t, request, server.tokenMaker, authorizationTypeBearer, user.Username, time.Minute)
 
 			server.router.ServeHTTP(recorder, request)
 			// check response
@@ -329,6 +341,15 @@ func randomAccount() db.Account {
 	return db.Account{
 		ID:       utils.RandomInt(1, 1000),
 		Owner:    utils.RandomOwner(),
+		Balance:  utils.RandomMoney(),
+		Currency: utils.RandomCurrency(),
+	}
+}
+
+func randomAccountWithUser(user db.User) db.Account {
+	return db.Account{
+		ID:       utils.RandomInt(1, 1000),
+		Owner:    user.Username,
 		Balance:  utils.RandomMoney(),
 		Currency: utils.RandomCurrency(),
 	}

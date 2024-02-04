@@ -2,6 +2,7 @@ package api
 
 import (
 	db "github.com/cukhoaimon/SimpleBank/db/sqlc"
+	"github.com/cukhoaimon/SimpleBank/token"
 	"github.com/cukhoaimon/SimpleBank/utils"
 	"github.com/stretchr/testify/require"
 	"os"
@@ -17,9 +18,13 @@ func newTestServer(t *testing.T, store db.Store) *Server {
 		TokenSymmetricKey: utils.RandomString(32),
 	}
 
+	pasetoMaker, err := token.NewPasetoMaker(config.TokenSymmetricKey)
+	require.Nil(t, err)
+
 	server, err := NewServer(store, config)
 	require.Nil(t, err)
 
+	server.tokenMaker = pasetoMaker
 	return server
 }
 
