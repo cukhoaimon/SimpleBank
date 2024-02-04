@@ -31,7 +31,6 @@ server:
 dbdocs:
 	dbdocs build doc/database.dbml
 
-
 mock:
 	mockgen -package mockdb -destination db/mock/store.go github.com/cukhoaimon/SimpleBank/db/sqlc Store
 

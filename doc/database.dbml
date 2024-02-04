@@ -16,7 +16,7 @@ Table users as U {
 
 Table accounts as A {
   id bigserial [pk]
-  owner varchar [ref: > U.username, not null]
+  owner varchar [r  ef: > U.username, not null]
   balance bigint [not null]
   currency varchar [not null]
   created_at timestamptz [not null, default: `now()`]
