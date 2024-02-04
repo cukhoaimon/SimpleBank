@@ -32,17 +32,14 @@ func TestPasetoMaker_Token(t *testing.T) {
 				maker, err := NewPasetoMaker(secretKey)
 				require.Nil(t, err)
 
-				token, err := maker.CreateToken(args.Username, duration)
+				token, returnedPayload, err := maker.CreateToken(args.Username, duration)
 				require.Nil(t, err)
 				require.NotEmpty(t, token)
+				verifyPayload(t, args, returnedPayload)
 
 				payload, err := maker.VerifyToken(token)
 				require.Nil(t, err)
-
-				require.NotEmpty(t, payload)
-				require.Equal(t, args.Username, payload.Username)
-				require.WithinDuration(t, args.IssuedAt, payload.IssuedAt, time.Second)
-				require.WithinDuration(t, args.ExpiredAt, payload.ExpiredAt, time.Second)
+				verifyPayload(t, args, payload)
 			},
 		},
 		{
@@ -61,4 +58,11 @@ func TestPasetoMaker_Token(t *testing.T) {
 			tt.testFunc(t, tt.secretKey, tt.args)
 		})
 	}
+}
+
+func verifyPayload(t *testing.T, want *Payload, have *Payload) {
+	require.NotEmpty(t, have)
+	require.Equal(t, want.Username, have.Username)
+	require.WithinDuration(t, want.IssuedAt, have.IssuedAt, time.Second)
+	require.WithinDuration(t, want.ExpiredAt, have.ExpiredAt, time.Second)
 }

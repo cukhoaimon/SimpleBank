@@ -32,17 +32,16 @@ func TestJWTMaker_Token(t *testing.T) {
 				maker, err := NewJWTMaker(secretKey)
 				require.Nil(t, err)
 
-				token, err := maker.CreateToken(args.Username, duration)
+				token, returnedPayload, err := maker.CreateToken(args.Username, duration)
 				require.Nil(t, err)
 				require.NotEmpty(t, token)
+
+				verifyPayload(t, args, returnedPayload)
 
 				payload, err := maker.VerifyToken(token)
 				require.Nil(t, err)
 
-				require.NotEmpty(t, payload)
-				require.Equal(t, args.Username, payload.Username)
-				require.WithinDuration(t, args.IssuedAt, payload.IssuedAt, time.Second)
-				require.WithinDuration(t, args.ExpiredAt, payload.ExpiredAt, time.Second)
+				verifyPayload(t, args, payload)
 			},
 		},
 		{

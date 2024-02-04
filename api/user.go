@@ -6,6 +6,7 @@ import (
 	db "github.com/cukhoaimon/SimpleBank/db/sqlc"
 	"github.com/cukhoaimon/SimpleBank/utils"
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"github.com/lib/pq"
 	"net/http"
 	"time"
@@ -73,8 +74,12 @@ type loginRequest struct {
 }
 
 type loginResponse struct {
-	AccessToken string       `json:"access_token"`
-	User        userResponse `json:"user"`
+	SessionID             uuid.UUID    `json:"session_id"`
+	AccessToken           string       `json:"access_token"`
+	AccessTokenExpiresAt  time.Time    `json:"access_token_expires_at"`
+	RefreshToken          string       `json:"refresh_token"`
+	RefreshTokenExpiresAt time.Time    `json:"refresh_token_expires_at"`
+	User                  userResponse `json:"user"`
 }
 
 func (server *Server) loginUser(ctx *gin.Context) {
@@ -102,15 +107,50 @@ func (server *Server) loginUser(ctx *gin.Context) {
 		return
 	}
 
-	token, err := server.tokenMaker.CreateToken(req.Username, server.config.TokenDuration)
+	token, accessTokenPayload, err := server.tokenMaker.CreateToken(req.Username, server.config.TokenDuration)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}
 
+	refreshToken, refreshTokenPayload, err := server.tokenMaker.CreateToken(req.Username, server.config.RefreshTokenDuration)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	arg := db.CreateSessionParams{
+		ID:           accessTokenPayload.Id,
+		Username:     accessTokenPayload.Username,
+		RefreshToken: refreshToken,
+		UserAgent:    ctx.Request.UserAgent(),
+		ClientIp:     ctx.ClientIP(),
+		IsBlocked:    false,
+		ExpiresAt:    refreshTokenPayload.ExpiredAt,
+	}
+
+	session, err := server.store.CreateSession(ctx, arg)
+	if err != nil {
+		var pqErr *pq.Error
+		if errors.As(err, &pqErr) {
+			switch pqErr.Code.Name() {
+			case "unique_violation":
+				ctx.JSON(http.StatusForbidden, errorResponse(err))
+				return
+			}
+		}
+
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
 	res := loginResponse{
-		AccessToken: token,
-		User:        makeUserResponse(user),
+		SessionID:             session.ID,
+		AccessToken:           token,
+		AccessTokenExpiresAt:  accessTokenPayload.ExpiredAt,
+		RefreshToken:          refreshToken,
+		RefreshTokenExpiresAt: refreshTokenPayload.ExpiredAt,
+		User:                  makeUserResponse(user),
 	}
 
 	ctx.JSON(http.StatusOK, res)

@@ -177,6 +177,10 @@ func TestServer_loginUser(t *testing.T) {
 			},
 			buildStubs: func(store *mockdb.MockStore) {
 				store.EXPECT().
+					CreateSession(gomock.Any(), gomock.Any()).
+					Times(1)
+
+				store.EXPECT().
 					GetUser(gomock.Any(), gomock.Eq(user.Username)).
 					Times(1).
 					Return(user, nil)
