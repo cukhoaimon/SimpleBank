@@ -19,7 +19,7 @@ func main() {
 	conn, err := sql.Open(config.DBDriver, config.DBSource)
 
 	if err != nil {
-		log.Fatal("The open connection to database process was encoutered an error", err)
+		log.Fatal("The open connection to database process was encountered an error", err)
 	}
 
 	store := db.NewStore(conn)
