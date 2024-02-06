@@ -35,7 +35,6 @@ mock:
 	mockgen -package mockdb -destination db/mock/store.go github.com/cukhoaimon/SimpleBank/db/sqlc Store
 
 proto:
-	rm -f pb/*.go # remove all previous files
 	protoc --proto_path=proto --go_out=pb --go_opt=paths=source_relative \
 	--go-grpc_out=pb --go-grpc_opt=paths=source_relative \
 	proto/*.proto
@@ -43,4 +42,4 @@ proto:
 tidy:
 	go mod tidy
 
-.PHONY: postgres createdb dropdb migrate-up migrate-down sqlc test server mock dbdocs proto tidymake
+.PHONY: postgres createdb dropdb migrate-up migrate-down sqlc test server mock dbdocs proto tidy

@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package db;
+package pb;
 
 import "rpc_create_user.proto";
 import "rpc_login_user.proto";
@@ -11,3 +11,4 @@ service SimpleBank {
   rpc CreateUser (CreateUserRequest) returns (CreateUserResponse) {}
   rpc LoginUser (LoginUserRequest) returns (LoginUserResponse) {}
 }
+
