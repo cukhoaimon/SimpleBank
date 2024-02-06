@@ -1,13 +1,17 @@
 package main
 
 import (
+	"context"
 	"database/sql"
 	"github.com/cukhoaimon/SimpleBank/gapi"
 	"github.com/cukhoaimon/SimpleBank/pb"
+	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
+	"google.golang.org/protobuf/encoding/protojson"
 	"log"
 	"net"
+	"net/http"
 
 	"github.com/cukhoaimon/SimpleBank/api"
 	db "github.com/cukhoaimon/SimpleBank/db/sqlc"
@@ -29,6 +33,8 @@ func main() {
 	}
 
 	store := db.NewStore(conn)
+
+	go runGatewayServer(store, config)
 	runGRPCServer(store, config)
 }
 
@@ -46,7 +52,7 @@ func runGinServer(store db.Store, config utils.Config) {
 func runGRPCServer(store db.Store, config utils.Config) {
 	server, err := gapi.NewServer(store, config)
 	if err != nil {
-		log.Fatal("Cannot create gRPC server")
+		log.Fatalf("Cannot create gRPC server: %s", err)
 	}
 
 	gRPCServer := grpc.NewServer()
@@ -56,11 +62,49 @@ func runGRPCServer(store db.Store, config utils.Config) {
 
 	listener, err := net.Listen("tcp", config.GrpcServerAddress)
 	if err != nil {
-		log.Fatal("Cannot create tcp-listener for gRPC server")
+		log.Fatalf("Cannot create tcp-listener for gRPC server: %s", err)
 	}
 
 	log.Printf("start gRPC server at: %s", listener.Addr().String())
 	if err = gRPCServer.Serve(listener); err != nil {
-		log.Fatal("Cannot serve gRPC server")
+		log.Fatalf("Cannot serve gRPC server: %s", err)
+	}
+}
+
+func runGatewayServer(store db.Store, config utils.Config) {
+	server, err := gapi.NewServer(store, config)
+	if err != nil {
+		log.Fatalf("Cannot create gRPC server: %s", err)
+	}
+
+	jsonOpts := runtime.WithMarshalerOption(runtime.MIMEWildcard, &runtime.JSONPb{
+		MarshalOptions: protojson.MarshalOptions{
+			UseProtoNames: true,
+		},
+		UnmarshalOptions: protojson.UnmarshalOptions{
+			DiscardUnknown: true,
+		},
+	})
+
+	grpcMux := runtime.NewServeMux(jsonOpts)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	if err = pb.RegisterSimpleBankHandlerServer(ctx, grpcMux, server); err != nil {
+		log.Fatalf("Cannot register handler server: %s", err)
+	}
+
+	mux := http.NewServeMux()
+	mux.Handle("/", grpcMux)
+
+	listener, err := net.Listen("tcp", config.HttpServerAddress)
+	if err != nil {
+		log.Fatalf("Cannot create tcp-listener for gateway server: %s", err)
+	}
+
+	log.Printf("start HTTP gateway server at: %s", listener.Addr().String())
+	if err = http.Serve(listener, mux); err != nil {
+		log.Fatalf("cannot HTTP gateway server: %s", err)
 	}
 }
