@@ -8,8 +8,7 @@ RUN go build -o main main.go
 FROM alpine:3.19
 WORKDIR /app
 COPY --from=builder /app/main .
-COPY --from=builder /app/wait-for.sh .
-COPY app.env .
+COPY .env .
 COPY start.sh .
 COPY db/migration ./db/migration
 
