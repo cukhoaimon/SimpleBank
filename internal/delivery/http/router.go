@@ -1,7 +1,6 @@
 package http
 
 import (
-	"github.com/cukhoaimon/SimpleBank/internal/delivery/http/middleware"
 	"github.com/gin-gonic/gin"
 )
 
@@ -11,7 +10,7 @@ func (handler *Handler) SetupRouter() {
 	router.POST("/api/v1/user/login", handler.loginUser)
 	router.POST("/api/v1/user/token/renew_access", handler.renewAccessTokenUser)
 
-	authRoutes := router.Group("/").Use(middleware.AuthMiddleware(handler.TokenMaker))
+	authRoutes := router.Group("/").Use(AuthMiddleware(handler.TokenMaker))
 
 	authRoutes.GET("/api/v1/account", handler.listAccount)
 	authRoutes.GET("/api/v1/account/:id", handler.getAccount)

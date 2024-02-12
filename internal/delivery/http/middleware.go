@@ -1,4 +1,4 @@
-package middleware
+package http
 
 import (
 	"errors"
@@ -51,8 +51,4 @@ func AuthMiddleware(tokenMaker token.Maker) gin.HandlerFunc {
 		ctx.Set(AuthorizationPayloadKey, payload)
 		ctx.Next()
 	}
-}
-
-func errorResponse(err error) gin.H {
-	return gin.H{"error": err.Error()}
 }

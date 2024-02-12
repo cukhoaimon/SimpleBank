@@ -3,7 +3,6 @@ package http
 import (
 	"database/sql"
 	"errors"
-	"github.com/cukhoaimon/SimpleBank/internal/delivery/http/middleware"
 	db "github.com/cukhoaimon/SimpleBank/internal/usecase/sqlc"
 	"github.com/cukhoaimon/SimpleBank/pkg/token"
 	"github.com/lib/pq"
@@ -25,7 +24,7 @@ func (handler *Handler) createAccount(ctx *gin.Context) {
 		return
 	}
 
-	authPayload := ctx.MustGet(middleware.AuthorizationPayloadKey).(*token.Payload)
+	authPayload := ctx.MustGet(AuthorizationPayloadKey).(*token.Payload)
 	arg := db.CreateAccountParams{
 		Owner:    authPayload.Username,
 		Currency: req.Currency,
@@ -73,7 +72,7 @@ func (handler *Handler) getAccount(ctx *gin.Context) {
 		return
 	}
 
-	authPayload := ctx.MustGet(middleware.AuthorizationPayloadKey).(*token.Payload)
+	authPayload := ctx.MustGet(AuthorizationPayloadKey).(*token.Payload)
 	if account.Owner != authPayload.Username {
 		err := errors.New("this account does not belong to the authenticated user")
 		ctx.JSON(http.StatusUnauthorized, errorResponse(err))
@@ -97,7 +96,7 @@ func (handler *Handler) listAccount(ctx *gin.Context) {
 		return
 	}
 
-	authPayload := ctx.MustGet(middleware.AuthorizationPayloadKey).(*token.Payload)
+	authPayload := ctx.MustGet(AuthorizationPayloadKey).(*token.Payload)
 	arg := db.ListAccountsParams{
 		Owner:  authPayload.Username,
 		Limit:  req.PageSize,

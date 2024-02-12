@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"github.com/cukhoaimon/SimpleBank/internal/delivery/http/middleware"
 	db "github.com/cukhoaimon/SimpleBank/internal/usecase/sqlc"
 	"github.com/cukhoaimon/SimpleBank/pkg/token"
 	"github.com/gin-gonic/gin"
@@ -65,7 +64,7 @@ func (handler *Handler) validOwner(ctx *gin.Context, accountID int64) bool {
 		return false
 	}
 
-	authPayload := ctx.MustGet(middleware.AuthorizationPayloadKey).(*token.Payload)
+	authPayload := ctx.MustGet(AuthorizationPayloadKey).(*token.Payload)
 	if account.Owner != authPayload.Username {
 		err = errors.New("from_account is not belong to the authorized user")
 		ctx.JSON(http.StatusUnauthorized, errorResponse(err))

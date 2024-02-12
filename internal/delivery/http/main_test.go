@@ -2,7 +2,6 @@ package http
 
 import (
 	"fmt"
-	"github.com/cukhoaimon/SimpleBank/internal/delivery/http/middleware"
 	db "github.com/cukhoaimon/SimpleBank/internal/usecase/sqlc"
 	"github.com/cukhoaimon/SimpleBank/pkg/token"
 	"github.com/cukhoaimon/SimpleBank/utils"
@@ -47,5 +46,5 @@ func addAuthorization(
 	require.NotEmpty(t, accessToken)
 
 	authorizationHeader := fmt.Sprintf("%s %s", authorizationType, accessToken)
-	request.Header.Set(middleware.AuthorizationHeaderKey, authorizationHeader)
+	request.Header.Set(AuthorizationHeaderKey, authorizationHeader)
 }

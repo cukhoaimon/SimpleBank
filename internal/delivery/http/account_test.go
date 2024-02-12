@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
-	"github.com/cukhoaimon/SimpleBank/internal/delivery/http/middleware"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -105,7 +104,7 @@ func TestServer_getAccount(t *testing.T) {
 			request, err := http.NewRequest(http.MethodGet, url, nil)
 			require.Nil(t, err)
 
-			addAuthorization(t, request, handler.TokenMaker, middleware.AuthorizationTypeBearer, user.Username, time.Minute)
+			addAuthorization(t, request, handler.TokenMaker, AuthorizationTypeBearer, user.Username, time.Minute)
 			handler.Router.ServeHTTP(recorder, request)
 			// check response
 			tc.checkResponse(t, recorder)
@@ -209,7 +208,7 @@ func TestServer_createAccount(t *testing.T) {
 			request, err := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(data))
 			require.Nil(t, err)
 
-			addAuthorization(t, request, server.TokenMaker, middleware.AuthorizationTypeBearer, arg.Owner, time.Minute)
+			addAuthorization(t, request, server.TokenMaker, AuthorizationTypeBearer, arg.Owner, time.Minute)
 
 			server.Router.ServeHTTP(recorder, request)
 			// check response
@@ -329,7 +328,7 @@ func TestServer_listAccount(t *testing.T) {
 			// send request
 			request, err := http.NewRequest(http.MethodGet, url, nil)
 			require.Nil(t, err)
-			addAuthorization(t, request, server.TokenMaker, middleware.AuthorizationTypeBearer, user.Username, time.Minute)
+			addAuthorization(t, request, server.TokenMaker, AuthorizationTypeBearer, user.Username, time.Minute)
 
 			server.Router.ServeHTTP(recorder, request)
 			// check response

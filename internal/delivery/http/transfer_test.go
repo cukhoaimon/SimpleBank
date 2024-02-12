@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"database/sql"
 	"encoding/json"
-	"github.com/cukhoaimon/SimpleBank/internal/delivery/http/middleware"
 	mockdb "github.com/cukhoaimon/SimpleBank/internal/delivery/http/mock"
 
 	db "github.com/cukhoaimon/SimpleBank/internal/usecase/sqlc"
@@ -283,7 +282,7 @@ func TestServer_createTransfer(t *testing.T) {
 			request, err := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(data))
 			require.Nil(t, err)
 
-			addAuthorization(t, request, handler.TokenMaker, middleware.AuthorizationTypeBearer, fromAccount.Owner, time.Minute)
+			addAuthorization(t, request, handler.TokenMaker, AuthorizationTypeBearer, fromAccount.Owner, time.Minute)
 			handler.Router.ServeHTTP(recorder, request)
 
 			// check response
