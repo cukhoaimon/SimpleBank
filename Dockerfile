@@ -10,7 +10,7 @@ WORKDIR /app
 COPY --from=builder /app/main .
 COPY .env .
 COPY start.sh .
-COPY db/migration ./db/migration
+COPY migration ./db/migration
 
 EXPOSE 8080
 ENTRYPOINT [ "/app/start.sh" ]

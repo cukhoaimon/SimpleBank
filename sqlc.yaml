@@ -1,12 +1,20 @@
-version: "1"
-packages:
-  - name: "db"
-    path: "./db/sqlc"
-    queries: "./db/query/"
-    schema: "./db/migration/"
+version: 2
+plugins:
+  - name: golang
+    wasm:
+      url: "https://downloads.sqlc.dev/plugin/sqlc-gen-go_1.2.0.wasm"
+      sha256: "965d73d22711eee3a210565e66f918b8cb831c5f5b612e680642a4a785dd1ca1"
+sql:
+  - schema: "./migration"
+    queries: "./internal/usecase/query/"
     engine: "postgresql"
-    emit_json_tags: true
-    emit_prepared_queries: false
-    emit_interface: true
-    emit_exact_table_names: false
-    emit_empty_slices: true
+    codegen:
+      - plugin: golang
+        out: "./internal/usecase/sqlc"
+        options:
+          package: "usecase"
+          emit_json_tags: true
+          emit_prepared_queries: false
+          emit_interface: true
+          emit_exact_table_names: false
+          emit_empty_slices: true

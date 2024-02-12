@@ -8,16 +8,16 @@ dropdb:
 	docker exec -it postgres16 dropdb simple_bank
 
 migrate-up:
-	migrate -path db/migration -database "postgresql://root:secret@localhost:5432/simple_bank?sslmode=disable" -verbose up
+	migrate -path migration -database "postgresql://root:secret@localhost:5432/simple_bank?sslmode=disable" -verbose up
 
 migrate-down:
-	migrate -path db/migration -database "postgresql://root:secret@localhost:5432/simple_bank?sslmode=disable" -verbose down
+	migrate -path migration -database "postgresql://root:secret@localhost:5432/simple_bank?sslmode=disable" -verbose down
 
 migrate-up1:
-	migrate -path db/migration -database "postgresql://root:secret@localhost:5432/simple_bank?sslmode=disable" -verbose up 1
+	migrate -path migration -database "postgresql://root:secret@localhost:5432/simple_bank?sslmode=disable" -verbose up 1
 
 migrate-down1:
-	migrate -path db/migration -database "postgresql://root:secret@localhost:5432/simple_bank?sslmode=disable" -verbose down 1
+	migrate -path migration -database "postgresql://root:secret@localhost:5432/simple_bank?sslmode=disable" -verbose down 1
 
 sqlc: 
 	sqlc generate
@@ -26,22 +26,22 @@ test:
 	go test -v -cover ./...
 
 server:
-	go run main.go
+	go run cmd/main.go
 
 dbdocs:
-	dbdocs build doc/database.dbml
+	dbdocs build docs/database.dbml
 
 mock:
-	mockgen -package mockdb -destination db/mock/store.go github.com/cukhoaimon/SimpleBank/db/sqlc Store
+	mockgen -package mockdb -destination internal/delivery/http/mock/store.go github.com/cukhoaimon/SimpleBank/internal/usecase/sqlc Store
 
 proto:
-	del doc\swagger\*.swagger.json &
-	del pb\*.pb.go &
-	protoc --proto_path=proto --go_out=pb --go_opt paths=source_relative \
-	--go-grpc_out=pb --go-grpc_opt paths=source_relative \
-	--grpc-gateway_out=pb --grpc-gateway_opt paths=source_relative \
-	--openapiv2_out=doc/swagger --openapiv2_opt allow_merge=true,merge_file_name=simplebank \
-	proto/*.proto
+	del docs\swagger\*.swagger.json &
+	del internal\delivery\grpc\pb &
+	protoc --proto_path=internal/delivery/grpc/proto --go_out=internal/delivery/grpc/pb --go_opt paths=source_relative \
+	--go-grpc_out=internal/delivery/grpc/pb --go-grpc_opt paths=source_relative \
+	--grpc-gateway_out=internal/delivery/grpc/pb --grpc-gateway_opt paths=source_relative \
+	--openapiv2_out=docs/swagger --openapiv2_opt allow_merge=true,merge_file_name=simplebank \
+	internal/delivery/grpc/proto/*.proto
 
 rerun_compose:
 	docker compose down &
