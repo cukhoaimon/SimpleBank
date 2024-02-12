@@ -43,7 +43,8 @@ proto:
 	--openapiv2_out=doc/swagger --openapiv2_opt allow_merge=true,merge_file_name=simplebank \
 	proto/*.proto
 
-tidy:
-	go mod tidy
+rerun_compose:
+	docker compose down &
+	docker compose up --build
 
-.PHONY: postgres createdb dropdb migrate-up migrate-down sqlc test server mock dbdocs proto tidy
+.PHONY: postgres createdb dropdb migrate-up migrate-down sqlc test server mock dbdocs proto rerun_compose

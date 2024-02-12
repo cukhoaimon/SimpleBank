@@ -3,9 +3,15 @@ package main
 import (
 	"context"
 	"database/sql"
+	"github.com/cukhoaimon/SimpleBank/api"
+	db "github.com/cukhoaimon/SimpleBank/db/sqlc"
 	"github.com/cukhoaimon/SimpleBank/gapi"
 	"github.com/cukhoaimon/SimpleBank/pb"
+	"github.com/cukhoaimon/SimpleBank/utils"
+	"github.com/golang-migrate/migrate/v4/database"
+	"github.com/golang-migrate/migrate/v4/database/postgres"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+	_ "github.com/lib/pq"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 	"google.golang.org/protobuf/encoding/protojson"
@@ -13,10 +19,10 @@ import (
 	"net"
 	"net/http"
 
-	"github.com/cukhoaimon/SimpleBank/api"
-	db "github.com/cukhoaimon/SimpleBank/db/sqlc"
-	"github.com/cukhoaimon/SimpleBank/utils"
-	_ "github.com/lib/pq"
+	"github.com/golang-migrate/migrate/v4"
+	_ "github.com/golang-migrate/migrate/v4/database/postgres"
+	_ "github.com/golang-migrate/migrate/v4/source/file"
+	_ "github.com/golang-migrate/migrate/v4/source/github"
 )
 
 func main() {
@@ -27,15 +33,34 @@ func main() {
 	}
 
 	conn, err := sql.Open(config.DBDriver, config.DBSource)
-
 	if err != nil {
 		log.Fatal("The open connection to database process was encountered an error", err)
 	}
+
+	driver, err := postgres.WithInstance(conn, &postgres.Config{})
+	if err != nil {
+		log.Fatal("Error when create postgres driver instance: ", err)
+	}
+
+	runDBMigration(config.MigrationURL, config.PostgresDB, driver)
 
 	store := db.NewStore(conn)
 
 	go runGatewayServer(store, config)
 	runGRPCServer(store, config)
+}
+
+func runDBMigration(sourceURL string, databaseName string, databaseInstance database.Driver) {
+	migration, err := migrate.NewWithDatabaseInstance(sourceURL, databaseName, databaseInstance)
+	if err != nil {
+		log.Fatal("fail to create migration instance: ", err)
+	}
+
+	if err = migration.Up(); err != nil {
+		log.Fatal("fail to run migrate up: ", err)
+	}
+
+	log.Println("migration is successfully")
 }
 
 func runGinServer(store db.Store, config utils.Config) {
