@@ -18,7 +18,6 @@ import (
 
 // Server serves gRPC request
 type Server struct {
-	pb.UnimplementedSimpleBankServer
 	Handler *gapi.Handler
 }
 
@@ -46,7 +45,7 @@ func Run(store db.Store, config utils.Config) {
 	}
 
 	gRPCServer := grpc.NewServer()
-	pb.RegisterSimpleBankServer(gRPCServer, server)
+	pb.RegisterSimpleBankServer(gRPCServer, server.Handler)
 	// allow client to know what RPCs currently available in server
 	reflection.Register(gRPCServer)
 
@@ -83,7 +82,7 @@ func RunGatewayServer(store db.Store, config utils.Config) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	if err = pb.RegisterSimpleBankHandlerServer(ctx, grpcMux, server); err != nil {
+	if err = pb.RegisterSimpleBankHandlerServer(ctx, grpcMux, server.Handler); err != nil {
 		log.Fatalf("Cannot register handler server: %s", err)
 	}
 
