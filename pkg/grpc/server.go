@@ -35,9 +35,7 @@ func NewServer(store db.Store, config utils.Config) (*Server, error) {
 		Config:     config,
 	}
 
-	server := &Server{Handler: handler}
-
-	return server, nil
+	return &Server{Handler: handler}, nil
 }
 
 // Run will run gRPC server with provided store and config
