@@ -217,8 +217,6 @@ func TestServer_createAccount(t *testing.T) {
 	}
 }
 
-// TODO: add authorization to listAccount
-// TODO: rewrite listAccount for more robust
 func TestServer_listAccount(t *testing.T) {
 	user, _ := randomUser(t)
 	n := 10
