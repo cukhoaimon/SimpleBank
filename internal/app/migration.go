@@ -3,18 +3,18 @@ package app
 import (
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database"
-	"log"
+	"github.com/rs/zerolog/log"
 )
 
 func RunDBMigration(sourceURL string, databaseName string, databaseInstance database.Driver) {
 	migration, err := migrate.NewWithDatabaseInstance(sourceURL, databaseName, databaseInstance)
 	if err != nil {
-		log.Fatal("fail to create migration instance: ", err)
+		log.Fatal().Err(err).Msg("fail to create migration instance: ")
 	}
 
 	if err = migration.Up(); err != nil && err.Error() != "no change" {
-		log.Fatal("fail to run migrate up: ", err)
+		log.Fatal().Err(err).Msg("fail to run migrate up: ")
 	}
 
-	log.Println("migration is successfully")
+	log.Info().Msg("migration is successfully")
 }

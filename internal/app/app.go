@@ -10,19 +10,19 @@ import (
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	_ "github.com/golang-migrate/migrate/v4/source/github"
 	_ "github.com/lib/pq"
-	"log"
+	"github.com/rs/zerolog/log"
 )
 
 // Run will run simple bank app
 func Run(config utils.Config) {
 	conn, err := sql.Open(config.DBDriver, config.DBSource)
 	if err != nil {
-		log.Fatal("The open connection to database process was encountered an error", err)
+		log.Fatal().Err(err).Msg("The open connection to database process was encountered an error")
 	}
 
 	driver, err := postgres.WithInstance(conn, &postgres.Config{})
 	if err != nil {
-		log.Fatal("Error when create postgres driver instance: ", err)
+		log.Fatal().Err(err).Msg("Error when create postgres driver instance: ")
 	}
 
 	RunDBMigration(config.MigrationURL, config.PostgresDB, driver)
