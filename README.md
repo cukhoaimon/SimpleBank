@@ -1,4 +1,9 @@
 ﻿# SimpleBank
+
+## Architecture
+<img width="760" alt="image" src="https://github.com/cukhoaimon/SimpleBank/assets/60815035/d29a0982-cc5b-429b-a477-2518fd2095b2">
+
+ 
 # For local development
 ## Requirements
 - [gRPC](https://grpc.io): create gRPC api
