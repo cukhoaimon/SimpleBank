@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestStore_TransferTxAccount(t *testing.T) {
+func TestStore_TransferTx(t *testing.T) {
 	store := NewStore(testDB)
 
 	wantFromAccount := createRandomAccount(t)
@@ -21,7 +21,7 @@ func TestStore_TransferTxAccount(t *testing.T) {
 
 	for i := 0; i < n; i++ {
 		go func() {
-			result, err := store.TransferTxAccount(context.Background(), TransferTxParams{
+			result, err := store.TransferTx(context.Background(), TransferTxParams{
 				FromAccountID: wantFromAccount.ID,
 				ToAccountID:   wantToAccount.ID,
 				Amount:        amount,
@@ -115,7 +115,7 @@ func TestStore_TransferTxAccount(t *testing.T) {
 	require.Equal(t, wantToAccount.Balance+int64(n)*amount, updatedAccount2.Balance)
 }
 
-func TestStore_TransferTxAccountDeadLock(t *testing.T) {
+func TestStore_TransferTxDeadLock(t *testing.T) {
 	store := NewStore(testDB)
 
 	wantFromAccount := createRandomAccount(t)
@@ -135,7 +135,7 @@ func TestStore_TransferTxAccountDeadLock(t *testing.T) {
 		}
 
 		go func() {
-			_, err := store.TransferTxAccount(context.Background(), TransferTxParams{
+			_, err := store.TransferTx(context.Background(), TransferTxParams{
 				FromAccountID: fromAccountID,
 				ToAccountID:   toAccountID,
 				Amount:        amount,
