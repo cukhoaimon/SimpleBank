@@ -3,15 +3,18 @@ package main
 import (
 	"github.com/cukhoaimon/SimpleBank/internal/app"
 	"github.com/cukhoaimon/SimpleBank/utils"
-	"log"
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
+
+	"os"
 )
 
 func main() {
+	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
 	// load config
 	config, err := utils.LoadConfig(".")
 	if err != nil {
-
-		log.Fatal(err.Error())
+		log.Err(err)
 	}
 
 	app.Run(config)
