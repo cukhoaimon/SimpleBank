@@ -6,11 +6,14 @@ import (
 	"github.com/cukhoaimon/SimpleBank/internal/delivery/grpc/pb"
 	db "github.com/cukhoaimon/SimpleBank/internal/usecase/sqlc"
 	"github.com/cukhoaimon/SimpleBank/internal/usecase/val"
+	"github.com/cukhoaimon/SimpleBank/pkg/worker"
 	"github.com/cukhoaimon/SimpleBank/utils"
+	"github.com/hibiken/asynq"
 	"github.com/lib/pq"
 	"google.golang.org/genproto/googleapis/rpc/errdetails"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"time"
 )
 
 func (handler *Handler) CreateUser(ctx context.Context, req *pb.CreateUserRequest) (*pb.CreateUserResponse, error) {
@@ -24,14 +27,27 @@ func (handler *Handler) CreateUser(ctx context.Context, req *pb.CreateUserReques
 		return nil, status.Errorf(codes.Internal, "fail to hash password: %s", err)
 	}
 
-	arg := db.CreateUserParams{
-		Username:       req.GetUsername(),
-		HashedPassword: hashedPassword,
-		FullName:       req.GetFullName(),
-		Email:          req.GetEmail(),
+	arg := db.CreateUserTxParams{
+		CreateUserParams: db.CreateUserParams{
+			Username:       req.GetUsername(),
+			HashedPassword: hashedPassword,
+			FullName:       req.GetFullName(),
+			Email:          req.GetEmail(),
+		},
+		AfterCreate: func(user db.User) error {
+			taskPayload := &worker.PayloadVerifyEmail{
+				Username: user.Username,
+			}
+			opts := []asynq.Option{
+				asynq.MaxRetry(10),
+				asynq.ProcessIn(10 * time.Second),
+				asynq.Queue(worker.QueueCritical),
+			}
+			return handler.TaskDistributor.DistributeTaskSendVerifyEmail(ctx, taskPayload, opts...)
+		},
 	}
 
-	user, err := handler.Store.CreateUser(ctx, arg)
+	txResult, err := handler.Store.CreateUserTx(ctx, arg)
 	if err != nil {
 		var pqErr *pq.Error
 		if errors.As(err, &pqErr) {
@@ -45,8 +61,9 @@ func (handler *Handler) CreateUser(ctx context.Context, req *pb.CreateUserReques
 	}
 
 	rsp := &pb.CreateUserResponse{
-		User: convertUser(user),
+		User: convertUser(txResult.User),
 	}
+
 	return rsp, nil
 }
 

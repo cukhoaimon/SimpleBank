@@ -47,4 +47,13 @@ rerun_compose:
 	docker compose down &
 	docker compose up --build
 
-.PHONY: postgres createdb dropdb migrate-up migrate-down sqlc test server mock dbdocs proto rerun_compose
+evans:
+	evans -r repl
+
+redis:
+	docker run --name redis -p 6379:6379 -d redis:7.2.4-alpine
+
+redis_healthcheck:
+	docker exec -it redis redis-cli ping
+
+.PHONY: postgres createdb dropdb migrate-up migrate-down sqlc test server mock dbdocs proto rerun_compose redis evans redis_healthcheck

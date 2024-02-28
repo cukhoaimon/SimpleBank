@@ -6,8 +6,10 @@ import (
 	"github.com/cukhoaimon/SimpleBank/internal/delivery/grpc/pb"
 	db "github.com/cukhoaimon/SimpleBank/internal/usecase/sqlc"
 	token2 "github.com/cukhoaimon/SimpleBank/pkg/token"
+	"github.com/cukhoaimon/SimpleBank/pkg/worker"
 	"github.com/cukhoaimon/SimpleBank/utils"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+	"github.com/hibiken/asynq"
 	"github.com/rs/zerolog/log"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
@@ -22,24 +24,26 @@ type Server struct {
 }
 
 // NewServer will return new gRPC server
-func NewServer(store db.Store, config utils.Config) (*Server, error) {
+func NewServer(store db.Store, config utils.Config, taskDistributor worker.TaskDistributor) (*Server, error) {
 	maker, err := token2.NewPasetoMaker(config.TokenSymmetricKey)
 	if err != nil {
 		return nil, err
 	}
 
 	handler := &gapi.Handler{
-		Store:      store,
-		TokenMaker: maker,
-		Config:     config,
+		Store:           store,
+		TokenMaker:      maker,
+		Config:          config,
+		TaskDistributor: taskDistributor,
 	}
 
 	return &Server{Handler: handler}, nil
 }
 
 // Run will run gRPC server with provided store and config
-func Run(store db.Store, config utils.Config) {
-	server, err := NewServer(store, config)
+func Run(store db.Store, config utils.Config, taskDistributor worker.TaskDistributor) {
+
+	server, err := NewServer(store, config, taskDistributor)
 	if err != nil {
 		log.Fatal().Err(err).Msg("Cannot create gRPC server: ")
 	}
@@ -63,8 +67,8 @@ func Run(store db.Store, config utils.Config) {
 
 // RunGatewayServer will run gRPC Gateway with provided store and config
 // to serve HTTP Request
-func RunGatewayServer(store db.Store, config utils.Config) {
-	server, err := NewServer(store, config)
+func RunGatewayServer(store db.Store, config utils.Config, taskDistributor worker.TaskDistributor) {
+	server, err := NewServer(store, config, taskDistributor)
 	if err != nil {
 		log.Fatal().Err(err).Msg("Cannot create gRPC server: ")
 	}
@@ -103,5 +107,14 @@ func RunGatewayServer(store db.Store, config utils.Config) {
 	handler := gapi.HttpGatewayLogger(mux)
 	if err = http.Serve(listener, handler); err != nil {
 		log.Fatal().Err(err).Msg("cannot HTTP gateway server: ")
+	}
+}
+
+func RunTaskProcessor(redisOpts asynq.RedisClientOpt, store db.Store) {
+	taskProcessor := worker.NewRedisTaskProcessor(redisOpts, store)
+	log.Info().Msg("start task processor")
+
+	if err := taskProcessor.Start(); err != nil {
+		log.Fatal().Err(err).Msg("fail to start task processor")
 	}
 }

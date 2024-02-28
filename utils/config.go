@@ -15,6 +15,7 @@ type Config struct {
 	RefreshTokenDuration time.Duration `mapstructure:"REFRESH_TOKEN_DURATION"`
 	TokenSymmetricKey    string        `mapstructure:"TOKEN_SYMMETRIC_KEY"`
 	PostgresDB           string        `mapstructure:"POSTGRES_DB"`
+	RedisAddress         string        `mapstructure:"REDIS_ADDRESS"`
 }
 
 func LoadConfig(path string) (config Config, err error) {
