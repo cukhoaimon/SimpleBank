@@ -91,7 +91,7 @@ func TestServer_createTransfer(t *testing.T) {
 					Return(toAccount, nil)
 
 				store.EXPECT().
-					TransferTxAccount(gomock.Any(), gomock.Eq(db.TransferTxParams{
+					TransferTx(gomock.Any(), gomock.Eq(db.TransferTxParams{
 						FromAccountID: fromAccount.ID,
 						ToAccountID:   toAccount.ID,
 						Amount:        amount,
@@ -120,7 +120,7 @@ func TestServer_createTransfer(t *testing.T) {
 			},
 			buildStubs: func(store *mockdb.MockStore) {
 				store.EXPECT().
-					TransferTxAccount(gomock.Any(), gomock.Any()).
+					TransferTx(gomock.Any(), gomock.Any()).
 					Times(0)
 			},
 			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
@@ -142,7 +142,7 @@ func TestServer_createTransfer(t *testing.T) {
 					Return(db.Account{}, sql.ErrNoRows)
 
 				store.EXPECT().
-					TransferTxAccount(gomock.Any(), gomock.Any()).
+					TransferTx(gomock.Any(), gomock.Any()).
 					Times(0)
 			},
 			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
@@ -164,7 +164,7 @@ func TestServer_createTransfer(t *testing.T) {
 					Return(fromAccount, nil)
 
 				store.EXPECT().
-					TransferTxAccount(gomock.Any(), gomock.Any()).
+					TransferTx(gomock.Any(), gomock.Any()).
 					Times(0)
 			},
 			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
@@ -191,7 +191,7 @@ func TestServer_createTransfer(t *testing.T) {
 					Return(thirdAccount, nil)
 
 				store.EXPECT().
-					TransferTxAccount(gomock.Any(), gomock.Any()).
+					TransferTx(gomock.Any(), gomock.Any()).
 					Times(0)
 			},
 			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
@@ -217,7 +217,7 @@ func TestServer_createTransfer(t *testing.T) {
 					Times(0)
 
 				store.EXPECT().
-					TransferTxAccount(gomock.Any(), gomock.Eq(db.TransferTxParams{
+					TransferTx(gomock.Any(), gomock.Eq(db.TransferTxParams{
 						FromAccountID: fromAccount.ID,
 						ToAccountID:   toAccount.ID,
 						Amount:        amount,
@@ -228,7 +228,7 @@ func TestServer_createTransfer(t *testing.T) {
 			},
 		},
 		{
-			name: "500 Internal server error from TransferTxAccount",
+			name: "500 Internal server error from TransferTx",
 			body: gin.H{
 				"from_account_id": fromAccount.ID,
 				"to_account_id":   toAccount.ID,
@@ -247,7 +247,7 @@ func TestServer_createTransfer(t *testing.T) {
 					Return(toAccount, nil)
 
 				store.EXPECT().
-					TransferTxAccount(gomock.Any(), gomock.Eq(db.TransferTxParams{
+					TransferTx(gomock.Any(), gomock.Eq(db.TransferTxParams{
 						FromAccountID: fromAccount.ID,
 						ToAccountID:   toAccount.ID,
 						Amount:        amount,

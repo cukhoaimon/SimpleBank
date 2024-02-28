@@ -43,7 +43,7 @@ func (handler *Handler) createTransfer(ctx *gin.Context) {
 		Amount:        req.Amount,
 	}
 
-	account, err := handler.Store.TransferTxAccount(ctx, arg)
+	account, err := handler.Store.TransferTx(ctx, arg)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
